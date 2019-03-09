@@ -1,0 +1,7 @@
+{
+	"botToken": "Put Bot Token Here",
+	"allowBotTagPrefix": true,
+	"prefixes": [
+		"."
+	]
+}
