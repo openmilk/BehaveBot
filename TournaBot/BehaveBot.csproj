@@ -5,11 +5,14 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <ApplicationIcon />
     <Win32Resource />
-    <StartupObject>LlamaBot.Program</StartupObject>
+    <StartupObject>BehaveBot.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Classes\Class1.cs" />
+    <Compile Remove="Classes\InvitationManager.cs" />
+    <Compile Remove="Classes\JsonExtensions.cs" />
+    <Compile Remove="Classes\LeagueExtensions.cs" />
     <Compile Remove="Modules\LeagueCommander.cs" />
     <Compile Remove="Modules\Lobby.cs" />
   </ItemGroup>

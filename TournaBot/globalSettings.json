@@ -1,7 +1,5 @@
 {
-	"botToken": "Put Bot Token Here",
-	"allowBotTagPrefix": true,
-	"prefixes": [
-		"."
-	]
+  "botToken": "",
+  "allowBotTagPrefix": true,
+  "defaultPrefix": "!"
 }

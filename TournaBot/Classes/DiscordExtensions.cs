@@ -1,24 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using System.Linq;
+﻿using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-using Newtonsoft.Json;
-
-using TournaBot.Classes;
-using LlamaBot.Services;
-
-namespace LlamaBot.Classes
+namespace BehaveBot.Classes
 {
     using Discord.Net;
     using System.IO;
     using System.Net;
-    using static JsonExtensions;
     public static class DiscordExtensions
     {
         public async static Task TimedReplyAsync(SocketCommandContext context, string message, bool isTTS = false, Embed embed = null, int time = 5)
@@ -74,54 +64,10 @@ namespace LlamaBot.Classes
             }
         }
 
-        public static async Task UpdateOrCreateJson(string directory, string file, string jsonData)
-        {
-            if (System.IO.Directory.Exists(directory))
-            {
-                System.IO.File.WriteAllText(directory + "/" + file, jsonData);
-            }
-        }
-
-        public static async Task CheckifJsonExistAndCreate(string directory, string file, string jsonData)
-        {
-            var doit = true;
-            Console.WriteLine(directory);
-            await CheckIfFolerExistAndCreate(directory);
-            if (System.IO.Directory.GetFiles(directory).Count() != 0)
-            {
-                Console.WriteLine("qwe");
-                foreach (string a in System.IO.Directory.GetFiles(directory))
-                {
-                    Console.WriteLine(a.Replace("\\", "/") + "()" + directory.Replace("\\", "/") + file);
-                    if (a.Replace("\\", "/") == directory.Replace("\\", "/") + file.Replace("\\", "/"))
-                    {
-                        doit = false;
-                    }
-                }
-            }
-            if (doit == true)
-            {
-                Console.WriteLine("qwe");
-                System.IO.File.WriteAllText(directory + file, jsonData);
-                Console.WriteLine("qwe");
-            }
-
-        }
-
-
-        public static string UrlImageType(string url)
+        public static string UrlImageType(string url)//used to see the filetype
         {
             var dot = url.LastIndexOf('.');
             return url.Substring(dot);
-        }
-
-        public async static Task DownLoadImage(string url, string directory)
-        {
-            int fCount = Directory.GetFiles(directory + "/images/", "*", SearchOption.AllDirectories).Length;
-            var imageType = UrlImageType(url);
-
-            using (WebClient client = new WebClient())
-                client.DownloadFileAsync(new Uri(url), directory + "/images/score" + fCount.ToString() + imageType);
         }
 
         public async static Task BuildEmbed(EmbedBuilder embed, SocketTextChannel Channel)

@@ -1,0 +1,16 @@
+{
+  "DiscordID": 543770437948145685,
+  "customPrefix": "",
+  "customReplies": {
+    "NoSwearingMessage": "No swearing Thank-you",
+    "NoLinksMessage": "Links Dont Belong Here",
+    "NoDiscordLinksMessage": "Discord Links Dont Belong Here"
+  },
+  "notAllowedMessageTypes": [
+    true,
+    true,
+    true
+  ],
+  "BypassRoles": [],
+  "overrideChannelsCats": {}
+}

@@ -11,10 +11,10 @@ using System.Collections.Generic;
 using System.Timers;
 using System;
 
-using LlamaBot.Modules;
-using LlamaBot.Services;
+using BehaveBot.Modules;
+using BehaveBot.Services;
 
-namespace LlamaBot.Classes
+namespace BehaveBot.Classes
 {
     public class InvitationManager
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Discord.Rest;
 using Newtonsoft.Json;
 using System.Linq;
-using LlamaBot.Classes;
+using BehaveBot.Classes;
 
 namespace TournaBot.Classes
 {

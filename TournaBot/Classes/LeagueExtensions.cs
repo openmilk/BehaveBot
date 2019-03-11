@@ -11,13 +11,13 @@ using Discord.Commands;
 using Discord.WebSocket;
 using TournaBot.Classes;
 
-namespace LlamaBot.Classes
+namespace BehaveBot.Classes
 {
     using static JsonExtensions;
     using static DiscordExtensions;
     using System.IO;
     using Discord.Rest;
-    using LlamaBot.Services;
+    using BehaveBot.Services;
     using Discord.Net;
     using System.Net;
 
