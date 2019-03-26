@@ -165,7 +165,7 @@ namespace BehaveBot.Services
 
             LoadSettings();
 
-            aTimer = new System.Timers.Timer(3000); //files updates every 30 seconds
+            aTimer = new System.Timers.Timer(30000); //files updates every 30 seconds
             // Hook up the Elapsed event for the timer. 
             aTimer.Elapsed += SaveSettings;
             aTimer.AutoReset = true;
