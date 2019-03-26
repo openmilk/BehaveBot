@@ -3,16 +3,20 @@
     "DiscordID": 543770437948145685,
     "customPrefix": "",
     "customReplies": {
-      "NoSwearingMessage": "No swearing Thank-you",
-      "NoLinksMessage": "Links Dont Belong Here",
-      "NoDiscordLinksMessage": "Discord Links Dont Belong Here"
+      "NoSwearingMessage": "Big Boys dont swear, are you a big boy?\n(if you didnt swear send either <@264184409047957514>  or <@115715438293417987> a dm)",
+      "NoLinksMessage": "Links belong in <#543796760053547038>",
+      "NoDiscordLinksMessage": "discord links belong in <#543796760053547038>"
     },
     "notAllowedMessageTypes": {
-      "NoSwearing": false,
+      "NoSwearing": true,
       "NoLinks": false,
       "NoDiscordLinksMessage": false
     },
-    "BypassRoles": [],
+    "BypassRoles": [
+      543772884481343489,
+      543772856769839119,
+      543772916412579840
+    ],
     "overrideChannelsCats": {
       }
   },
@@ -28,6 +32,31 @@
       },
       "overrideKey": [
         0
+      ]
+    },
+    {
+      "overideChanels": {
+        "allowedMessageTypes": {
+          "NoSwearing": true,
+          "NoLinks": false,
+          "NoDiscordLinksMessage": false
+        },
+        "overideCatName": "AllowLinks"
+      },
+      "overrideKey": [
+        0,
+        544607375244394519,
+        543796760053547038,
+        549751257254985738,
+        543796714709188618,
+        544024469686059058,
+        543795812103094292,
+        543795907460857869,
+        544447837513973761,
+        548834143580979211,
+        553177135150268417,
+        543794528235028480,
+        543802352746889236
       ]
     }
   ]

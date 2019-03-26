@@ -62,19 +62,19 @@ namespace BehaveBot.Modules
                 if (RemainingText.ToLower().Trim().StartsWith("links"))
                 {
                     RemainingText = RemoveString(RemainingText, "links");
-                    discordSettings.customReplies.NoLinksMessage = setString(discordSettings.customReplies.NoLinksMessage, "Custom No Links Reply");
+                    discordSettings.customReplies.NoLinksMessage = setString(RemainingText, "Custom No Links Reply");
                 }
 
                 else if (RemainingText.ToLower().Trim().StartsWith("discord"))
                 {
                     RemainingText = RemoveString(RemainingText, "discord");
-                    discordSettings.customReplies.NoDiscordLinksMessage = setString(discordSettings.customReplies.NoDiscordLinksMessage, "Custom No Discord Links Reply");
+                    discordSettings.customReplies.NoDiscordLinksMessage = setString(RemainingText, "Custom No Discord Links Reply");
                 }
 
                 else if (RemainingText.ToLower().Trim().StartsWith("swearing"))
                 {
                     RemainingText = RemoveString(RemainingText, "swearing");
-                    discordSettings.customReplies.NoSwearingMessage = setString(discordSettings.customReplies.NoSwearingMessage, "Custom No Swearing Reply");
+                    discordSettings.customReplies.NoSwearingMessage = setString(RemainingText, "Custom No Swearing Reply");
                 }
 
                 else
@@ -91,7 +91,16 @@ namespace BehaveBot.Modules
             {
                 RemainingText = RemoveString(RemainingText, "perms");
 
-                if (RemainingText.ToLower().Trim().StartsWith("links"))
+                //custom perm settings area
+                if (discordSettings.overrideChannelsCats.Any(x => RemainingText.ToLower().Trim().StartsWith(x.Value.overideCatName.ToLower())))
+                {
+                    var overide = discordSettings.overrideChannelsCats.First(x => RemainingText.ToLower().Trim().StartsWith(x.Value.overideCatName.ToLower()));
+                    RemainingText = RemoveString(RemainingText, overide.Value.overideCatName);
+
+                    overide.Value.allowedMessageTypes = SetAllowedMessagesTypes(discordSettings.notAllowedMessageTypes, RemainingText, overide.Value.overideCatName + " allowed messages");
+                }
+
+                else if (RemainingText.ToLower().Trim().StartsWith("links"))
                 {
                     RemainingText = RemoveString(RemainingText, "links");
                     discordSettings.notAllowedMessageTypes.NoLinks = GetBoolFromString(discordSettings.notAllowedMessageTypes.NoLinks, RemainingText, "Default Allowed Links").Item1;
@@ -119,7 +128,7 @@ namespace BehaveBot.Modules
                 if (discordSettings.overrideChannelsCats.Any(x => RemainingText.ToLower().Trim().StartsWith(x.Value.overideCatName.ToLower())))
                 {
                     var overide = discordSettings.overrideChannelsCats.First(x => RemainingText.ToLower().Trim().StartsWith(x.Value.overideCatName.ToLower()));
-                    RemainingText = RemoveString(RemainingText, overide.Value.overideCatName);
+                    //RemainingText = RemoveString(RemainingText, overide.Value.overideCatName);
 
 
                     discordSettings.overrideChannelsCats = UpdateDicKey(discordSettings.overrideChannelsCats, Context.Channel.Id, RemainingText, "Overide channels");
@@ -241,13 +250,13 @@ namespace BehaveBot.Modules
             {
                 RemainingText = RemoveString(RemainingText, "bypass");
 
-                if (Context.Message.MentionedUsers.Count != 0)
-                    foreach (var a in Context.Message.MentionedUsers)
+                if (Context.Message.MentionedRoles.Count != 0)
+                    foreach (var a in Context.Message.MentionedRoles)
                     {
-                        discordSettings.BypassRoles = AddUlongFromList(discordSettings.BypassRoles, a.Id, "Bypass roles");
+                        discordSettings.BypassRoles = AddUlongFromList(discordSettings.BypassRoles, a.Id, "Bypass roles", "@&");
                     }
                 else
-                    addtext(Context.Guild, Context.Message.Channel as SocketTextChannel, user, "You need to mention users", messageHandler);
+                    addtext(Context.Guild, Context.Message.Channel as SocketTextChannel, user, "You need to mention Roles", messageHandler);
 
             }
         }
@@ -392,7 +401,7 @@ namespace BehaveBot.Modules
 
         public Tuple<bool?, string, bool> GetBoolFromString(bool? _bool, string text, string type = "Dont Reply")//Value, text, ifFailed
         {
-            var failed = true;
+            var success = false;
 
             var dictionary = new Dictionary<string, bool?>
             {
@@ -400,28 +409,31 @@ namespace BehaveBot.Modules
                 {"false", false },
                 {"null", true },
                 {"defualt", null },
+                {"default", null },
             };
 
+
+            //Console.WriteLine("text:"+text); //verifying code
             if (dictionary.Any(x => text.ToLower().StartsWith(x.Key)))
             {
-                failed = false;
+                success = true;
 
                 var boolType = dictionary.First(x => text.ToLower().StartsWith(x.Key));
 
                 _bool = boolType.Value;
 
-                text = text.Substring(boolType.Key.Length - 1).Trim();
+                text = RemoveString(text, boolType.Key);
             }
 
             if (type != "Dont Reply")
             {
-                if (!failed)
+                if (success)
                     addtext(Context.Guild, Context.Message.Channel as SocketTextChannel, user, "Set " + type + " to " + _bool.ToString(), messageHandler);
                 else
                     addtext(Context.Guild, Context.Message.Channel as SocketTextChannel, user, "Failed to set " + type + ". Make sure you are using either true, false or default", messageHandler);
             }
 
-            return new Tuple<bool?, string, bool>(_bool, text, failed);
+            return new Tuple<bool?, string, bool>(_bool, text, success);
         }
 
         public string setString(string text, string type)
@@ -435,21 +447,24 @@ namespace BehaveBot.Modules
         {
             if (dic.Any(x => x.Value.overideCatName.ToLower() == name.ToLower()))
             {
-
                 var value = dic.First(x => x.Value.overideCatName.ToLower() == name.ToLower());
-                var newKeys = value.Key;
-                newKeys.Add(newKey);
 
-                dic.Add(newKeys, value.Value);
-                dic.Remove(value.Key);
-
-
-                foreach (var a in dic.Where(x => x.Key.Contains(newKey) && x.Key != newKeys))
+                if (!value.Key.Contains(newKey))
                 {
-                    dic = RemoveDicKeys(dic, newKey, a.Key);
-                }
+                    var newKeys = value.Key;
+                    newKeys.Add(newKey);
 
-                addtext(Context.Guild, Context.Message.Channel as SocketTextChannel, user, "Set <#"+newKey+"> as " + name + " in " + type, messageHandler);
+
+                    foreach (var a in dic.Where(x => x.Key.Contains(newKey) && x.Key != newKeys))
+                    {
+                        dic = RemoveDicKeys(dic, newKey, a.Key);
+                    }
+
+                    addtext(Context.Guild, Context.Message.Channel as SocketTextChannel, user, "Set <#" + newKey + "> as " + name + " in " + type, messageHandler);
+                }
+                else
+                    addtext(Context.Guild, Context.Message.Channel as SocketTextChannel, user, "<#" + newKey + "> is allready set as " + name, messageHandler);
+
             }
             else
                 addtext(Context.Guild, Context.Message.Channel as SocketTextChannel, user, "Cannot find " + name + " in " + type, messageHandler);
@@ -465,9 +480,6 @@ namespace BehaveBot.Modules
                 var value = dic.First(x => x.Key == currentKeys);
                 var newKeys = value.Key;
                 newKeys.Remove(key);
-
-                dic.Add(newKeys, value.Value);
-                dic.Remove(value.Key);
             }
 
             return dic;

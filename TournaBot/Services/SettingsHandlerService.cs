@@ -143,10 +143,6 @@ namespace BehaveBot.Services
 
                         var pos = tempJson.LastIndexOf("overideCatName");
 
-                        Console.Write(pos+ ","+ posEnd);
-
-                        
-
                         end = tempJson.LastIndexOf("}");
 
                     }
