@@ -1,7 +1,10 @@
 ﻿using System;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Timers;
+using static BehaveBot.Services.DiscordSettings;
+using static BehaveBot.Services.DiscordSettings.CustomDiscordSetting;
 
 namespace BehaveBot.Services
 {
@@ -15,22 +18,31 @@ namespace BehaveBot.Services
             public string botToken { get; set; } = "";
             public bool allowBotTagPrefix { get; set; } = true;
             public string defaultPrefix { get; set; } = "!";
+            public List<ulong> botDevs { get; set; } = new List<ulong>();
         }
+
+        
 
         public List<string> defaultBadWords { get; set; } = new List<string>();
         public List<string> defaultSafeWords { get; set; } = new List<string>();
         public List<string> DiscordInviteLinks { get; set; } = new List<string>();
 
-        public Dictionary<ulong, DiscordSetting> customDiscordSettings { get; set; } = new Dictionary<ulong, DiscordSetting>();
+        public Dictionary<ulong, CustomDiscordSetting> customDiscordSettings { get; set; } = new Dictionary<ulong, CustomDiscordSetting>();
 
-        public class DiscordSetting
+        public class CustomDiscordSetting
         {
             public ulong DiscordID { get; set; } = 0;// used so i dont have to do conversion on bot boot for every server
 
             public string customPrefix { get; set; } = "";
             public CustomReplies customReplies { get; set; } = new CustomReplies();
 
-            public List<bool?> notAllowedMessageTypes { get; set; } = new List<bool?>(); //swearing, links, DiscordLinks
+            public AllowedMessageTypes notAllowedMessageTypes { get; set; } = new AllowedMessageTypes
+            {
+                NoDiscordLinksMessage = false,
+                NoLinks = false,
+                NoSwearing = false
+            }; //Null by defualt, hence why setting it to false
+
 
             public List<ulong> BypassRoles { get; set; } = new List<ulong>();
 
@@ -39,7 +51,7 @@ namespace BehaveBot.Services
 
             public class OverideChannmels
             {
-                public List<bool?> allowedMessageTypes { get; set; } = new List<bool?> { true, true, true }; //swearing, links, DiscordLinks// null means follow defualt
+                public AllowedMessageTypes allowedMessageTypes { get; set; } = new AllowedMessageTypes {}; //swearing, links, DiscordLinks// null means follow defualt
                 public string overideCatName { get; set; } = "";
             }
 
@@ -48,6 +60,13 @@ namespace BehaveBot.Services
                 public string NoSwearingMessage { get; set; } = "No swearing Thank-you";
                 public string NoLinksMessage { get; set; } = "Links Dont Belong Here";
                 public string NoDiscordLinksMessage { get; set; } = "Discord Links Dont Belong Here";
+            }
+
+            public class AllowedMessageTypes
+            {
+                public bool? NoSwearing { get; set; } = null;
+                public bool? NoLinks { get; set; } = null;
+                public bool? NoDiscordLinksMessage { get; set; } = null;
             }
         }    
     }
@@ -59,6 +78,85 @@ namespace BehaveBot.Services
         public DiscordSettings discord = new DiscordSettings(); //sets it so it is not null
         private Timer aTimer;
 
+        private class cachedGuildSettings
+        {
+            public CustomDiscordSetting discordSettingsUncached; //does not need to be cached
+            public List<CachedDictionary> discordSettingCached;
+            //public List<>
+
+            public class CachedDictionary
+            {
+                public OverideChannmels overideChanels;
+                public List<ulong> overrideKey;
+
+            }
+
+            public CustomDiscordSetting UnCache(cachedGuildSettings settings)
+            {
+                var value = settings.discordSettingsUncached;
+
+                foreach (var b in discordSettingCached)
+                {
+                    value.overrideChannelsCats.Add(b.overrideKey, b.overideChanels);
+                }
+
+
+                return value;
+            }
+
+            public static cachedGuildSettings CacheSettings(CustomDiscordSetting settings)
+            {
+                var cache = new List<CachedDictionary>();
+                foreach (var a in settings.overrideChannelsCats)
+                {
+                    var _settings = new CachedDictionary
+                    {
+                        overrideKey = a.Key,
+                        overideChanels = a.Value
+                    };
+
+                    cache.Add(_settings);
+                }
+
+                var value = new cachedGuildSettings { discordSettingsUncached = settings };
+
+                // value.discordSettingsUncached = removeDictionary(value.discordSettingsUncached);
+
+
+                value.discordSettingCached = cache;
+                //value.discordSettingsUncached.overrideChannelsCats = new Dictionary<List<ulong>, OverideChannmels>();
+
+                return value;
+            }
+
+            public static string removeBrokenJson(string json)
+            {
+                if (json.Contains("(Collection)"))
+                {
+                    var start = json.IndexOf("(Collection)") - 1; //minus one as i need to remove a bracket as well
+                    var end = 0; //abit harder code for it will be below
+
+                    {//seperating code
+                       
+                        var posEnd = json.LastIndexOf("discordSettingCached") - 7;//idk if its the exact number, but it worked
+                        var tempJson = json.Substring(0, posEnd);
+
+                        var pos = tempJson.LastIndexOf("overideCatName");
+
+                        Console.Write(pos+ ","+ posEnd);
+
+                        
+
+                        end = tempJson.LastIndexOf("}");
+
+                    }
+
+                    json = json.Substring(0, start) + json.Substring(end);
+                }
+                return json;
+            }
+        }
+
         private string guildsDirectory = Environment.CurrentDirectory + "\\Guilds";
 
         public SettingsHandlerService()
@@ -67,7 +165,7 @@ namespace BehaveBot.Services
 
             LoadSettings();
 
-            aTimer = new System.Timers.Timer(30000); //files updates every 30 seconds
+            aTimer = new System.Timers.Timer(3000); //files updates every 30 seconds
             // Hook up the Elapsed event for the timer. 
             aTimer.Elapsed += SaveSettings;
             aTimer.AutoReset = true;
@@ -108,18 +206,11 @@ namespace BehaveBot.Services
                 if (a.EndsWith(".json"))//make sore the file is a json
                 {
                     var loadedString = System.IO.File.ReadAllText(a);
-                    var customDiscordSettings = JsonConvert.DeserializeObject<DiscordSettings.DiscordSetting>(loadedString);
+                    var customDiscordSettingsCache = JsonConvert.DeserializeObject<cachedGuildSettings>(loadedString);
 
-                    while (customDiscordSettings.notAllowedMessageTypes.Count < 3) //load settings and update them if need be
-                        customDiscordSettings.notAllowedMessageTypes.Add(false);
+                    var customDiscordSettings = customDiscordSettingsCache.UnCache(customDiscordSettingsCache); //dictionary does not go into json that well, so it goes as a list instead
 
-                    foreach(var b in customDiscordSettings.overrideChannelsCats)
-                        while (b.Value.allowedMessageTypes.Count < 3) //load settings and update them if need be
-                            b.Value.allowedMessageTypes.Add(null);
-
-
-                    Console.WriteLine(customDiscordSettings.notAllowedMessageTypes.Count);
-                    //might be an issue with discord ids allready existing and crashing the bot, key word might
+                    //might be an issue with discord ids allready existing and crashing the bot, key word "might" 
                     discord.customDiscordSettings.Add(customDiscordSettings.DiscordID, customDiscordSettings);
                 }
             }
@@ -141,11 +232,15 @@ namespace BehaveBot.Services
             foreach (var a in discord.customDiscordSettings)
             {
                 // Console.WriteLine("try Cache " + a.GuildsSettings.GuildID);
-                var jsonData = JsonConvert.SerializeObject(a.Value, Formatting.Indented);
+
+                var brokenJson = JsonConvert.SerializeObject(cachedGuildSettings.CacheSettings(a.Value), Formatting.Indented);//idk why its broken plzs fix, i got it working anyway (not a good method imo)
+                var fixedJson = cachedGuildSettings.removeBrokenJson(brokenJson); //removed broken part before moving the part to a list instead of a dictionary 
+                //if you want to fix give me a DM Milky#0001 and ill explain the issue
+
 
                 try//try as saving a file sometimes can cause issues, never found the issue so i wraped it in a try loop
                 {
-                    System.IO.File.WriteAllText(guildsDirectory + "\\" + a.Key + ".json", jsonData);
+                    System.IO.File.WriteAllText(guildsDirectory + "\\" + a.Key + ".json", fixedJson);
                 }
                 catch (Exception)
                 {

@@ -13,13 +13,22 @@ namespace BehaveBot.Classes
 
         public static string RemoveSpaces(this string value)
         {
-            while (value.First() == ' ' && value != "")
+            /*while (value.First() == ' ' && value != "")
                 value = value.Substring(1);
 
             while (value.Last() == ' ' && value != "")
-                value = value.Substring(0, value.Length - 1);
+                value = value.Substring(0, value.Length - 1);*/
+
+            value = value.Trim(' ');
 
             return value;
+        }
+
+        public static string RemoveString(string text, string removingText)
+        {
+            text = text.Substring(removingText.Length).Trim();
+
+            return text;
         }
     }
 }

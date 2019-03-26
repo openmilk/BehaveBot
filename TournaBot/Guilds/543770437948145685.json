@@ -1,16 +1,34 @@
 {
-  "DiscordID": 543770437948145685,
-  "customPrefix": "",
-  "customReplies": {
-    "NoSwearingMessage": "No swearing Thank-you",
-    "NoLinksMessage": "Links Dont Belong Here",
-    "NoDiscordLinksMessage": "Discord Links Dont Belong Here"
+  "discordSettingsUncached": {
+    "DiscordID": 543770437948145685,
+    "customPrefix": "",
+    "customReplies": {
+      "NoSwearingMessage": "No swearing Thank-you",
+      "NoLinksMessage": "Links Dont Belong Here",
+      "NoDiscordLinksMessage": "Discord Links Dont Belong Here"
+    },
+    "notAllowedMessageTypes": {
+      "NoSwearing": false,
+      "NoLinks": false,
+      "NoDiscordLinksMessage": false
+    },
+    "BypassRoles": [],
+    "overrideChannelsCats": {
+      }
   },
-  "notAllowedMessageTypes": [
-    true,
-    true,
-    true
-  ],
-  "BypassRoles": [],
-  "overrideChannelsCats": {}
+  "discordSettingCached": [
+    {
+      "overideChanels": {
+        "allowedMessageTypes": {
+          "NoSwearing": null,
+          "NoLinks": null,
+          "NoDiscordLinksMessage": null
+        },
+        "overideCatName": "allowAllLinks"
+      },
+      "overrideKey": [
+        0
+      ]
+    }
+  ]
 }

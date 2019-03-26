@@ -11,59 +11,6 @@ namespace BehaveBot.Classes
     using System.Net;
     public static class DiscordExtensions
     {
-        public async static Task TimedReplyAsync(SocketCommandContext context, string message, bool isTTS = false, Embed embed = null, int time = 5)
-        {
-            await TimedDeleteAsync(await context.Channel.SendMessageAsync(message, isTTS, embed), time);
-        }
-
-        public async static Task TimedReplyAsync(SocketCommandContext context, string message, int time = 5, bool isTTS = false, Embed embed = null)
-        {
-            await TimedDeleteAsync(await context.Channel.SendMessageAsync(message, isTTS, embed), time);
-        }
-
-        public async static Task TimedReplyAsync(SocketCommandContext context, string message)
-        {
-            await TimedDeleteAsync(await context.Channel.SendMessageAsync(message));
-        }
-
-        public async static Task TimedReplyAsync(SocketGuildUser user, string message, bool isTTS = false, Embed embed = null, int time = 5)
-        {
-            await TimedDeleteAsync(await user.SendMessageAsync(message, isTTS, embed), time);
-        }
-
-        public async static Task TimedReplyAsync(SocketGuildUser user, string message, int time = 5, bool isTTS = false, Embed embed = null)
-        {
-            await TimedDeleteAsync(await user.SendMessageAsync(message, isTTS, embed), time);
-        }
-
-        public async static Task TimedReplyAsync(SocketGuildUser user, string message)
-        {
-            await TimedDeleteAsync(await user.SendMessageAsync(message));
-        }
-
-        public async static Task TimedDeleteAsync(IMessage message, int time = 5)
-        {
-            await Task.Run(() => DeleteMessageAsync(message, time * 1000));
-        }
-
-        private async static void DeleteMessageAsync(IMessage message, int time = 5)
-        {
-            await Task.Delay(time);
-
-            var mes = message.Channel.GetMessageAsync(message.Id).IsCompletedSuccessfully;
-            if (mes)
-                await message.DeleteAsync();
-        }
-
-        public static async Task CheckIfFolerExistAndCreate(string directory)
-        {
-
-            if (!System.IO.Directory.Exists(directory))
-            {
-                System.IO.Directory.CreateDirectory(directory);
-            }
-        }
-
         public static string UrlImageType(string url)//used to see the filetype
         {
             var dot = url.LastIndexOf('.');
@@ -86,6 +33,21 @@ namespace BehaveBot.Classes
                 return null;
             }
         }
+
+        public static bool IsAdmin(SocketGuildUser user, bool isDev)
+        {
+            var isAdmin = false;
+
+            if (isDev)
+                isAdmin = true;
+
+            else if (user.GuildPermissions.Administrator == true)
+                isAdmin = true;
+
+            return isAdmin;
+        }
+
+
 
     }
 }

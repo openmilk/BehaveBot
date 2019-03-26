@@ -19,8 +19,6 @@ namespace BehaveBot.Services
         private SettingsHandlerService settings;
         private Dictionary<ulong, Dictionary<ulong, channelMesages>> messageHandler;
 
-        public List<string> DiscordInvites = new List<string> { "/discord.gg/", };
-
         public async Task InitializeAsync()
         {
             await commands.AddModulesAsync(Assembly.GetEntryAssembly(), provider);
@@ -47,7 +45,7 @@ namespace BehaveBot.Services
             var DefaultSettings = settings.discord.defaultDiscordSettings;//get defualt discord settings
 
             var msg = socketMessage as SocketUserMessage;
-            if (msg == null)         
+            if (msg == null)
                 return;
             
             var context = new SocketCommandContext(discord, msg);
@@ -55,18 +53,18 @@ namespace BehaveBot.Services
             var botPrefix = discord.CurrentUser as SocketSelfUser;
 
             bool canUseBotPrefix = DefaultSettings.allowBotTagPrefix;
-            //bool canUseBotPrefix = settings.discord.allowBotTagPrefix;
+
             if (msg.Channel is IDMChannel)//Dms of the user
             {
 
             }
             else if (msg.Channel is SocketGuildChannel chnl)//guild channel
             {
-                var guildsettings = new DiscordSettings.DiscordSetting();
+                var guildsettings = new DiscordSettings.CustomDiscordSetting();
 
                 if (!settings.discord.customDiscordSettings.TryGetValue(chnl.Guild.Id, out guildsettings))//check for guild settings
                 {//if failed to find settings add creat them
-                    guildsettings = new DiscordSettings.DiscordSetting { DiscordID = chnl.Guild.Id, notAllowedMessageTypes = new List<bool?> { false,false,false } };//  need to make it so list does not need to be declared like that
+                    guildsettings = new DiscordSettings.CustomDiscordSetting { DiscordID = chnl.Guild.Id };
 
                     settings.discord.customDiscordSettings.Add(chnl.Guild.Id, guildsettings);
                 }
@@ -100,33 +98,34 @@ namespace BehaveBot.Services
             }
         }
 
-        private bool MessageIsSafe(SocketUserMessage uMsg, SocketGuild guild, DiscordSettings.DiscordSetting guildsettings)
+        private bool MessageIsSafe(SocketUserMessage uMsg, SocketGuild guild, DiscordSettings.CustomDiscordSetting guildsettings)
         {//uMsg stands for user message
             var safe = true;
 
-            var checkBadSafeWords = guildsettings.notAllowedMessageTypes[0];
-            var checkLinksWords = guildsettings.notAllowedMessageTypes[1];
-            var checkDiscordWords = guildsettings.notAllowedMessageTypes[2];
+            var checkBadSafeWords = guildsettings.notAllowedMessageTypes.NoSwearing;
+            var checkLinksWords = guildsettings.notAllowedMessageTypes.NoLinks;
+            var checkDiscordWords = guildsettings.notAllowedMessageTypes.NoDiscordLinksMessage;
 
             var msg = uMsg.Content;
             if (guildsettings.overrideChannelsCats.Any(x => x.Key.Any(y => y == uMsg.Channel.Id))) //check for overide perms channel
             {
                 var perms = guildsettings.overrideChannelsCats.First(x => x.Key.Any(y => y == uMsg.Channel.Id)).Value;
-                if (perms.allowedMessageTypes[0] != null)//null means use defualt
+                if (perms.allowedMessageTypes.NoSwearing != null)//null means use defualt
                 {
-                    checkBadSafeWords = perms.allowedMessageTypes[0];
+                    checkBadSafeWords = perms.allowedMessageTypes.NoSwearing;
                 }
 
-                if (perms.allowedMessageTypes[1] != null)//null means use defauly
+                if (perms.allowedMessageTypes.NoLinks != null)//null means use defauly
                 {
-                    checkLinksWords = perms.allowedMessageTypes[1];
+                    checkLinksWords = perms.allowedMessageTypes.NoLinks;
                 }
 
-                if (perms.allowedMessageTypes[2] != null)//null means use default
+                if (perms.allowedMessageTypes.NoDiscordLinksMessage != null)//null means use default
                 {
-                    checkDiscordWords = perms.allowedMessageTypes[2];
+                    checkDiscordWords = perms.allowedMessageTypes.NoDiscordLinksMessage;
                 }
             }
+
 
             //using nullable bools, this means bools have 3 diffrerent stats true, false and null (null in this case means use defualt)
             if (checkBadSafeWords == true)//also means i have to add == true
